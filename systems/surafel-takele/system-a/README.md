@@ -21,4 +21,5 @@ This system assembles shared composites for an operations-focused dashboard wher
 
 ```bash
 npm run build -w @systems/surafel-system-a
+npm run dev -w @systems/surafel-system-a
 ```

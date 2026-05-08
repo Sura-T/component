@@ -6,16 +6,22 @@
   "description": "Surafel system A assembly: operations dashboard.",
   "main": "src/index.ts",
   "scripts": {
-    "build": "npm run build -w @monorepo/feature-x && npm run build -w @monorepo/feature-y && tsc -p tsconfig.json"
+    "build": "npm run build -w @monorepo/feature-x && npm run build -w @monorepo/feature-y && tsc -p tsconfig.json",
+    "dev": "npm run build -w @monorepo/feature-x && npm run build -w @monorepo/feature-y && vite",
+    "preview": "vite preview"
   },
   "dependencies": {
     "@monorepo/feature-x": "1.0.0",
     "@monorepo/feature-y": "1.0.0",
     "@monorepo/ui-components": "1.0.0",
     "@monorepo/utils": "1.0.0",
-    "react": "^19.2.0"
+    "react": "^19.2.0",
+    "react-dom": "^19.2.6"
   },
   "devDependencies": {
-    "@types/react": "^19.2.2"
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "vite": "^8.0.11"
   }
 }
