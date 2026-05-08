@@ -5,8 +5,10 @@ export interface Task {
     createdAt: string;
 }
 export type TaskStatusFilter = "all" | Task["status"];
+export type TaskSortOption = "createdAt-desc" | "createdAt-asc" | "title-asc" | "title-desc";
 export declare function completionRate(tasks: Task[]): number;
 export declare function filterTasks(tasks: Task[], filter: TaskStatusFilter): Task[];
+export declare function searchAndSortTasks(tasks: Task[], searchTerm: string, sortBy: TaskSortOption): Task[];
 export interface TaskBoardProps {
     tasks: Task[];
     onCreateTask?: () => void;
@@ -30,5 +32,12 @@ export interface TaskCreationWizardProps {
     initialValues?: Partial<TaskCreationWizardValues>;
 }
 export declare function TaskCreationWizard({ onSubmit, onCancel, initialValues }: TaskCreationWizardProps): import("react/jsx-runtime").JSX.Element;
+export interface TaskSearchAndSortPanelProps {
+    tasks: Task[];
+    defaultSearch?: string;
+    defaultSort?: TaskSortOption;
+    onVisibleTasksChange?: (visibleTasks: Task[]) => void;
+}
+export declare function TaskSearchAndSortPanel({ tasks, defaultSearch, defaultSort, onVisibleTasksChange }: TaskSearchAndSortPanelProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=index.d.ts.map

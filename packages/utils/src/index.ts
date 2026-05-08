@@ -15,20 +15,72 @@ export function toTitleCase(value: string): string {
     .join(" ");
 }
 
-export function buildQueryString(
-  params: Record<string, string | number | boolean | undefined>
-): string {
-  const query = new URLSearchParams();
-  Object.entries(params).forEach(([key, rawValue]) => {
-    if (rawValue === undefined) {
-      return;
+type QuerySingleValue = string | number | boolean | Date;
+export type QueryValue = QuerySingleValue | QuerySingleValue[] | null | undefined;
+
+function normalizeQueryValues(value: QueryValue): string[] {
+  if (value === undefined || value === null) {
+    return [];
+  }
+
+  const sourceValues = Array.isArray(value) ? value : [value];
+
+  return sourceValues.map((entry) => {
+    if (entry instanceof Date) {
+      return entry.toISOString();
     }
 
-    query.set(key, String(rawValue));
+    return String(entry);
+  });
+}
+
+export function buildQueryString(params: Record<string, QueryValue>): string {
+  const query = new URLSearchParams();
+
+  Object.entries(params).forEach(([key, rawValue]) => {
+    const normalizedValues = normalizeQueryValues(rawValue);
+    normalizedValues.forEach((value) => query.append(key, value));
   });
 
   const serialized = query.toString();
   return serialized ? `?${serialized}` : "";
+}
+
+export function appendQueryParams(
+  baseUrl: string,
+  params: Record<string, QueryValue>
+): string {
+  const query = buildQueryString(params);
+  if (!query) {
+    return baseUrl;
+  }
+
+  const separator = baseUrl.includes("?") ? "&" : "?";
+  return `${baseUrl}${query.replace("?", separator)}`;
+}
+
+type HttpRequestError = Error & {
+  status?: number;
+  statusText?: string;
+};
+
+function isObjectRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+export function parseApiError(error: unknown): string {
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
+  if (isObjectRecord(error)) {
+    const message = error.message;
+    if (typeof message === "string" && message.length > 0) {
+      return message;
+    }
+  }
+
+  return "Unexpected API error";
 }
 
 export async function requestJson<T>(
@@ -37,7 +89,12 @@ export async function requestJson<T>(
 ): Promise<T> {
   const response = await fetch(url, init);
   if (!response.ok) {
-    throw new Error(`Request failed: ${response.status} ${response.statusText}`);
+    const error = new Error(
+      `Request failed: ${response.status} ${response.statusText}`
+    ) as HttpRequestError;
+    error.status = response.status;
+    error.statusText = response.statusText;
+    throw error;
   }
 
   return (await response.json()) as T;
@@ -92,4 +149,89 @@ export function validateObject<T extends object>(
   }
 
   return errors;
+}
+
+export interface RetryOptions {
+  attempts?: number;
+  initialDelayMs?: number;
+  backoffMultiplier?: number;
+  retryOnStatuses?: number[];
+}
+
+const defaultRetryStatuses = [408, 425, 429, 500, 502, 503, 504];
+
+function shouldRetry(
+  error: unknown,
+  retryOnStatuses: number[],
+  attempt: number,
+  attempts: number
+): boolean {
+  if (attempt >= attempts) {
+    return false;
+  }
+
+  if (isObjectRecord(error) && typeof error.status === "number") {
+    return retryOnStatuses.includes(error.status);
+  }
+
+  return true;
+}
+
+function wait(delayMs: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, delayMs);
+  });
+}
+
+export async function requestJsonWithRetry<T>(
+  url: string,
+  init?: RequestInit,
+  options: RetryOptions = {}
+): Promise<T> {
+  const attempts = options.attempts ?? 3;
+  const initialDelayMs = options.initialDelayMs ?? 250;
+  const backoffMultiplier = options.backoffMultiplier ?? 2;
+  const retryOnStatuses = options.retryOnStatuses ?? defaultRetryStatuses;
+
+  let attempt = 1;
+  let delayMs = initialDelayMs;
+  let lastError: unknown = new Error("Unknown request error");
+
+  while (attempt <= attempts) {
+    try {
+      return await requestJson<T>(url, init);
+    } catch (error) {
+      lastError = error;
+      const retryable = shouldRetry(error, retryOnStatuses, attempt, attempts);
+      if (!retryable) {
+        throw error;
+      }
+
+      await wait(delayMs);
+      delayMs *= backoffMultiplier;
+      attempt += 1;
+    }
+  }
+
+  throw lastError;
+}
+
+export interface UtilityExampleSnapshot {
+  formattedDate: string;
+  normalizedTitle: string;
+  queryPreview: string;
+}
+
+export function getDateAndStringExamples(
+  referenceDate: Date = new Date("2026-04-25T09:00:00.000Z")
+): UtilityExampleSnapshot {
+  return {
+    formattedDate: formatDate(referenceDate),
+    normalizedTitle: toTitleCase("student portal update"),
+    queryPreview: buildQueryString({
+      from: referenceDate,
+      search: "attendance summary",
+      view: "weekly"
+    })
+  };
 }

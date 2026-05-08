@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Badge,
   Button,
@@ -9,6 +9,7 @@ import {
   Stack
 } from "@monorepo/ui-components";
 import {
+  buildQueryString,
   composeValidators,
   email,
   formatDate,
@@ -46,6 +47,54 @@ export function filterByLevel(
 
 export function warningCount(items: ActivityItem[]): number {
   return items.filter((item) => item.level === "warning").length;
+}
+
+export interface NotificationDigestItem {
+  id: string;
+  recipient: string;
+  title: string;
+  message: string;
+  level: ActivityItem["level"];
+  channel: "email" | "in-app" | "sms";
+  createdAt: string;
+  isRead: boolean;
+}
+
+export type NotificationDigestFilter = "all" | "unread" | "warning" | "info";
+
+const digestFilters: NotificationDigestFilter[] = ["all", "unread", "warning", "info"];
+
+export function filterNotificationDigest(
+  items: NotificationDigestItem[],
+  filter: NotificationDigestFilter,
+  searchTerm: string
+): NotificationDigestItem[] {
+  const normalizedSearch = searchTerm.trim().toLowerCase();
+
+  const byFilter = items.filter((item) => {
+    if (filter === "all") {
+      return true;
+    }
+
+    if (filter === "unread") {
+      return !item.isRead;
+    }
+
+    return item.level === filter;
+  });
+
+  if (!normalizedSearch) {
+    return byFilter;
+  }
+
+  return byFilter.filter((item) => {
+    const combinedValue = `${item.title} ${item.message} ${item.recipient}`.toLowerCase();
+    return combinedValue.includes(normalizedSearch);
+  });
+}
+
+export function unreadDigestCount(items: NotificationDigestItem[]): number {
+  return items.filter((item) => !item.isRead).length;
 }
 
 export interface ActivityFeedProps {
@@ -250,6 +299,113 @@ export function UserProfileStatusPanel({
           />
         </Stack>
       </Stack>
+    </Card>
+  );
+}
+
+export interface NotificationDigestListProps {
+  items: NotificationDigestItem[];
+  defaultFilter?: NotificationDigestFilter;
+  onVisibleItemsChange?: (visibleItems: NotificationDigestItem[]) => void;
+}
+
+export function NotificationDigestList({
+  items,
+  defaultFilter = "all",
+  onVisibleItemsChange
+}: NotificationDigestListProps) {
+  const [activeFilter, setActiveFilter] =
+    useState<NotificationDigestFilter>(defaultFilter);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const visibleItems = useMemo(
+    () => filterNotificationDigest(items, activeFilter, searchTerm),
+    [items, activeFilter, searchTerm]
+  );
+
+  const queryPreview = useMemo(
+    () =>
+      buildQueryString({
+        filter: activeFilter,
+        search: searchTerm || undefined,
+        unread: unreadDigestCount(visibleItems)
+      }),
+    [activeFilter, searchTerm, visibleItems]
+  );
+
+  useEffect(() => {
+    onVisibleItemsChange?.(visibleItems);
+  }, [visibleItems, onVisibleItemsChange]);
+
+  return (
+    <Card
+      title="Feature Y: Notification Digest List"
+      actions={
+        <Stack direction="row" gap="0.5rem" align="center">
+          <Badge label={`${unreadDigestCount(visibleItems)} unread`} />
+          <Badge label={`${visibleItems.length} visible`} />
+        </Stack>
+      }
+    >
+      <SectionHeader
+        title="Digest Filters"
+        subtitle="Filter unread and warning notifications for monitoring workflows."
+      />
+
+      <label
+        style={{
+          color: "#374151",
+          display: "block",
+          fontSize: "0.9rem",
+          fontWeight: 600,
+          marginBottom: "0.75rem"
+        }}
+      >
+        Search notification
+        <input
+          onChange={(event) => setSearchTerm(event.target.value)}
+          placeholder="Search title, message, recipient..."
+          style={{
+            border: "1px solid #d1d5db",
+            borderRadius: "8px",
+            display: "block",
+            marginTop: "0.35rem",
+            padding: "0.45rem 0.55rem",
+            width: "100%"
+          }}
+          value={searchTerm}
+        />
+      </label>
+
+      <Stack direction="row" gap="0.5rem" wrap="wrap">
+        {digestFilters.map((filter) => (
+          <Button
+            key={filter}
+            label={toTitleCase(filter)}
+            onClick={() => setActiveFilter(filter)}
+            variant={activeFilter === filter ? "primary" : "secondary"}
+          />
+        ))}
+      </Stack>
+
+      <div style={{ color: "#6b7280", fontSize: "0.85rem", marginTop: "0.85rem" }}>
+        Query preview: {queryPreview || "(empty)"}
+      </div>
+
+      <ul style={{ margin: "0.85rem 0 0 0", paddingInlineStart: "1.25rem" }}>
+        {visibleItems.map((item) => (
+          <li key={item.id} style={{ marginBottom: "0.75rem" }}>
+            <div style={{ display: "flex", gap: "0.5rem", marginBottom: "0.2rem" }}>
+              <strong>{item.title}</strong>
+              <Badge label={toTitleCase(item.level)} />
+            </div>
+            <div>{item.message}</div>
+            <div style={{ color: "#6b7280", fontSize: "0.85rem" }}>
+              {toTitleCase(item.channel)} | {item.recipient} | {formatDate(item.createdAt)}
+            </div>
+          </li>
+        ))}
+      </ul>
     </Card>
   );
 }

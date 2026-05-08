@@ -1,0 +1,21 @@
+{
+  "name": "@systems/gebriel-system-b",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Gebriel system B assembly: resource monitor.",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "npm run build -w @monorepo/feature-x && npm run build -w @monorepo/feature-y && tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@monorepo/feature-x": "1.0.0",
+    "@monorepo/feature-y": "1.0.0",
+    "@monorepo/ui-components": "1.0.0",
+    "@monorepo/utils": "1.0.0",
+    "react": "^19.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.2"
+  }
+}

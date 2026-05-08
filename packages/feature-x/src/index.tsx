@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Badge,
   Button,
@@ -9,6 +9,7 @@ import {
   Stack
 } from "@monorepo/ui-components";
 import {
+  buildQueryString,
   composeValidators,
   email,
   formatDate,
@@ -26,8 +27,15 @@ export interface Task {
 }
 
 export type TaskStatusFilter = "all" | Task["status"];
+export type TaskSortOption = "createdAt-desc" | "createdAt-asc" | "title-asc" | "title-desc";
 
 const taskStatusOptions: TaskStatusFilter[] = ["all", "todo", "doing", "done"];
+const taskSortOptions: TaskSortOption[] = [
+  "createdAt-desc",
+  "createdAt-asc",
+  "title-asc",
+  "title-desc"
+];
 
 export function completionRate(tasks: Task[]): number {
   if (tasks.length === 0) {
@@ -44,6 +52,34 @@ export function filterTasks(tasks: Task[], filter: TaskStatusFilter): Task[] {
   }
 
   return tasks.filter((task) => task.status === filter);
+}
+
+export function searchAndSortTasks(
+  tasks: Task[],
+  searchTerm: string,
+  sortBy: TaskSortOption
+): Task[] {
+  const normalizedSearch = searchTerm.trim().toLowerCase();
+
+  const filtered = normalizedSearch
+    ? tasks.filter((task) => task.title.toLowerCase().includes(normalizedSearch))
+    : [...tasks];
+
+  return filtered.sort((left, right) => {
+    if (sortBy === "createdAt-desc") {
+      return new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime();
+    }
+
+    if (sortBy === "createdAt-asc") {
+      return new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime();
+    }
+
+    if (sortBy === "title-desc") {
+      return right.title.localeCompare(left.title);
+    }
+
+    return left.title.localeCompare(right.title);
+  });
 }
 
 export interface TaskBoardProps {
@@ -270,6 +306,105 @@ export function TaskCreationWizard({
           <Button label={canContinue ? "Create Task" : "Fix Errors"} onClick={handleSubmit} />
         </Stack>
       </Stack>
+    </Card>
+  );
+}
+
+export interface TaskSearchAndSortPanelProps {
+  tasks: Task[];
+  defaultSearch?: string;
+  defaultSort?: TaskSortOption;
+  onVisibleTasksChange?: (visibleTasks: Task[]) => void;
+}
+
+export function TaskSearchAndSortPanel({
+  tasks,
+  defaultSearch = "",
+  defaultSort = "createdAt-desc",
+  onVisibleTasksChange
+}: TaskSearchAndSortPanelProps) {
+  const [searchTerm, setSearchTerm] = useState(defaultSearch);
+  const [activeSort, setActiveSort] = useState<TaskSortOption>(defaultSort);
+
+  const visibleTasks = useMemo(
+    () => searchAndSortTasks(tasks, searchTerm, activeSort),
+    [tasks, searchTerm, activeSort]
+  );
+
+  const queryPreview = useMemo(
+    () =>
+      buildQueryString({
+        search: searchTerm || undefined,
+        sort: activeSort,
+        visible: visibleTasks.length
+      }),
+    [searchTerm, activeSort, visibleTasks.length]
+  );
+
+  useEffect(() => {
+    onVisibleTasksChange?.(visibleTasks);
+  }, [visibleTasks, onVisibleTasksChange]);
+
+  return (
+    <Card
+      title="Feature X: Task Search and Sort Panel"
+      actions={<Badge label={`${visibleTasks.length} matches`} />}
+    >
+      <SectionHeader
+        title="Search Tasks"
+        subtitle="Search by title and sort by date or title for faster triage."
+      />
+
+      <label
+        style={{
+          color: "#374151",
+          display: "block",
+          fontSize: "0.9rem",
+          fontWeight: 600,
+          marginBottom: "0.75rem"
+        }}
+      >
+        Search term
+        <input
+          onChange={(event) => setSearchTerm(event.target.value)}
+          placeholder="Search task title..."
+          style={{
+            border: "1px solid #d1d5db",
+            borderRadius: "8px",
+            display: "block",
+            marginTop: "0.35rem",
+            padding: "0.45rem 0.55rem",
+            width: "100%"
+          }}
+          value={searchTerm}
+        />
+      </label>
+
+      <Stack direction="row" gap="0.5rem" wrap="wrap">
+        {taskSortOptions.map((option) => (
+          <Button
+            key={option}
+            label={toTitleCase(option.replace(/-/g, " "))}
+            onClick={() => setActiveSort(option)}
+            variant={activeSort === option ? "primary" : "secondary"}
+          />
+        ))}
+      </Stack>
+
+      <div style={{ color: "#6b7280", fontSize: "0.85rem", marginTop: "0.85rem" }}>
+        Query preview: {queryPreview || "(empty)"}
+      </div>
+
+      <ul style={{ margin: "0.85rem 0 0 0", paddingInlineStart: "1.25rem" }}>
+        {visibleTasks.map((task) => (
+          <li key={task.id} style={{ marginBottom: "0.5rem" }}>
+            <strong>{toTitleCase(task.title)}</strong>
+            <div style={{ color: "#6b7280", fontSize: "0.85rem" }}>
+              Status: {toTitleCase(task.status)} | Created: {formatDate(task.createdAt)}
+            </div>
+          </li>
+        ))}
+      </ul>
     </Card>
   );
 }

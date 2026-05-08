@@ -11,3 +11,7 @@
 /tests
 /tools
 /utils
+**/dist
+**/build
+**/coverage
+**/node_modules

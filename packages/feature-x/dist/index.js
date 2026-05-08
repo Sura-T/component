@@ -1,8 +1,14 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Badge, Button, Card, InputField, SectionHeader, SelectField, Stack } from "@monorepo/ui-components";
-import { composeValidators, email, formatDate, minLength, required, toTitleCase, validateObject } from "@monorepo/utils";
+import { buildQueryString, composeValidators, email, formatDate, minLength, required, toTitleCase, validateObject } from "@monorepo/utils";
 const taskStatusOptions = ["all", "todo", "doing", "done"];
+const taskSortOptions = [
+    "createdAt-desc",
+    "createdAt-asc",
+    "title-asc",
+    "title-desc"
+];
 export function completionRate(tasks) {
     if (tasks.length === 0) {
         return 0;
@@ -15,6 +21,24 @@ export function filterTasks(tasks, filter) {
         return tasks;
     }
     return tasks.filter((task) => task.status === filter);
+}
+export function searchAndSortTasks(tasks, searchTerm, sortBy) {
+    const normalizedSearch = searchTerm.trim().toLowerCase();
+    const filtered = normalizedSearch
+        ? tasks.filter((task) => task.title.toLowerCase().includes(normalizedSearch))
+        : [...tasks];
+    return filtered.sort((left, right) => {
+        if (sortBy === "createdAt-desc") {
+            return new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime();
+        }
+        if (sortBy === "createdAt-asc") {
+            return new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime();
+        }
+        if (sortBy === "title-desc") {
+            return right.title.localeCompare(left.title);
+        }
+        return left.title.localeCompare(right.title);
+    });
 }
 export function TaskBoard({ tasks, onCreateTask }) {
     const completed = completionRate(tasks);
@@ -70,4 +94,31 @@ export function TaskCreationWizard({ onSubmit, onCancel, initialValues }) {
                             label: option.label,
                             value: option.value
                         })), onChange: (value) => updateValue("priority", value), error: errors.priority, required: true }), _jsx(InputField, { label: "Details", value: values.details, onChange: (value) => updateValue("details", value), placeholder: "Describe scope, acceptance criteria, and notes.", error: errors.details, helperText: "At least 10 characters", required: true }), _jsxs(Stack, { direction: "row", gap: "0.5rem", justify: "flex-end", children: [_jsx(Button, { label: "Cancel", variant: "secondary", onClick: onCancel }), _jsx(Button, { label: canContinue ? "Create Task" : "Fix Errors", onClick: handleSubmit })] })] })] }));
+}
+export function TaskSearchAndSortPanel({ tasks, defaultSearch = "", defaultSort = "createdAt-desc", onVisibleTasksChange }) {
+    const [searchTerm, setSearchTerm] = useState(defaultSearch);
+    const [activeSort, setActiveSort] = useState(defaultSort);
+    const visibleTasks = useMemo(() => searchAndSortTasks(tasks, searchTerm, activeSort), [tasks, searchTerm, activeSort]);
+    const queryPreview = useMemo(() => buildQueryString({
+        search: searchTerm || undefined,
+        sort: activeSort,
+        visible: visibleTasks.length
+    }), [searchTerm, activeSort, visibleTasks.length]);
+    useEffect(() => {
+        onVisibleTasksChange?.(visibleTasks);
+    }, [visibleTasks, onVisibleTasksChange]);
+    return (_jsxs(Card, { title: "Feature X: Task Search and Sort Panel", actions: _jsx(Badge, { label: `${visibleTasks.length} matches` }), children: [_jsx(SectionHeader, { title: "Search Tasks", subtitle: "Search by title and sort by date or title for faster triage." }), _jsxs("label", { style: {
+                    color: "#374151",
+                    display: "block",
+                    fontSize: "0.9rem",
+                    fontWeight: 600,
+                    marginBottom: "0.75rem"
+                }, children: ["Search term", _jsx("input", { onChange: (event) => setSearchTerm(event.target.value), placeholder: "Search task title...", style: {
+                            border: "1px solid #d1d5db",
+                            borderRadius: "8px",
+                            display: "block",
+                            marginTop: "0.35rem",
+                            padding: "0.45rem 0.55rem",
+                            width: "100%"
+                        }, value: searchTerm })] }), _jsx(Stack, { direction: "row", gap: "0.5rem", wrap: "wrap", children: taskSortOptions.map((option) => (_jsx(Button, { label: toTitleCase(option.replace(/-/g, " ")), onClick: () => setActiveSort(option), variant: activeSort === option ? "primary" : "secondary" }, option))) }), _jsxs("div", { style: { color: "#6b7280", fontSize: "0.85rem", marginTop: "0.85rem" }, children: ["Query preview: ", queryPreview || "(empty)"] }), _jsx("ul", { style: { margin: "0.85rem 0 0 0", paddingInlineStart: "1.25rem" }, children: visibleTasks.map((task) => (_jsxs("li", { style: { marginBottom: "0.5rem" }, children: [_jsx("strong", { children: toTitleCase(task.title) }), _jsxs("div", { style: { color: "#6b7280", fontSize: "0.85rem" }, children: ["Status: ", toTitleCase(task.status), " | Created: ", formatDate(task.createdAt)] })] }, task.id))) })] }));
 }

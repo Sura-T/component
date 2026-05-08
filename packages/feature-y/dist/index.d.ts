@@ -8,6 +8,19 @@ export interface ActivityItem {
 export type ActivityLevelFilter = "all" | ActivityItem["level"];
 export declare function filterByLevel(items: ActivityItem[], level: ActivityLevelFilter): ActivityItem[];
 export declare function warningCount(items: ActivityItem[]): number;
+export interface NotificationDigestItem {
+    id: string;
+    recipient: string;
+    title: string;
+    message: string;
+    level: ActivityItem["level"];
+    channel: "email" | "in-app" | "sms";
+    createdAt: string;
+    isRead: boolean;
+}
+export type NotificationDigestFilter = "all" | "unread" | "warning" | "info";
+export declare function filterNotificationDigest(items: NotificationDigestItem[], filter: NotificationDigestFilter, searchTerm: string): NotificationDigestItem[];
+export declare function unreadDigestCount(items: NotificationDigestItem[]): number;
 export interface ActivityFeedProps {
     items: ActivityItem[];
 }
@@ -28,5 +41,11 @@ export interface UserProfileStatusPanelProps {
     onSave?: (values: UserProfileStatusValues) => void;
 }
 export declare function UserProfileStatusPanel({ initialValues, onSave }: UserProfileStatusPanelProps): import("react/jsx-runtime").JSX.Element;
+export interface NotificationDigestListProps {
+    items: NotificationDigestItem[];
+    defaultFilter?: NotificationDigestFilter;
+    onVisibleItemsChange?: (visibleItems: NotificationDigestItem[]) => void;
+}
+export declare function NotificationDigestList({ items, defaultFilter, onVisibleItemsChange }: NotificationDigestListProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=index.d.ts.map
