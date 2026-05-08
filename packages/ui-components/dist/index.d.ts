@@ -29,4 +29,36 @@ export interface SectionHeaderProps {
     action?: ReactNode;
 }
 export declare function SectionHeader({ title, subtitle, action }: SectionHeaderProps): import("react/jsx-runtime").JSX.Element;
+export interface InputFieldProps {
+    id?: string;
+    label: string;
+    name?: string;
+    value: string;
+    placeholder?: string;
+    type?: "text" | "email" | "password" | "search" | "tel" | "url";
+    onChange: (value: string) => void;
+    helperText?: string;
+    error?: string;
+    required?: boolean;
+    disabled?: boolean;
+}
+export declare function InputField({ id, label, name, value, placeholder, type, onChange, helperText, error, required, disabled }: InputFieldProps): import("react/jsx-runtime").JSX.Element;
+export interface SelectOption {
+    label: string;
+    value: string;
+}
+export interface SelectFieldProps {
+    id?: string;
+    label: string;
+    name?: string;
+    value: string;
+    options: SelectOption[];
+    onChange: (value: string) => void;
+    placeholder?: string;
+    helperText?: string;
+    error?: string;
+    required?: boolean;
+    disabled?: boolean;
+}
+export declare function SelectField({ id, label, name, value, options, onChange, placeholder, helperText, error, required, disabled }: SelectFieldProps): import("react/jsx-runtime").JSX.Element;
 //# sourceMappingURL=index.d.ts.map

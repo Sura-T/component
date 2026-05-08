@@ -171,3 +171,182 @@ export function SectionHeader({ title, subtitle, action }: SectionHeaderProps) {
     </header>
   );
 }
+
+const fieldContainerStyle: CSSProperties = {
+  display: "flex",
+  flexDirection: "column",
+  gap: "0.35rem"
+};
+
+const labelStyle: CSSProperties = {
+  color: "#374151",
+  fontSize: "0.85rem",
+  fontWeight: 600
+};
+
+const helperTextStyle: CSSProperties = {
+  color: "#6b7280",
+  fontSize: "0.8rem",
+  margin: 0
+};
+
+const errorTextStyle: CSSProperties = {
+  color: "#b91c1c",
+  fontSize: "0.8rem",
+  margin: 0
+};
+
+const baseFieldStyle: CSSProperties = {
+  border: "1px solid #d1d5db",
+  borderRadius: "8px",
+  color: "#111827",
+  fontSize: "0.9rem",
+  padding: "0.5rem 0.65rem"
+};
+
+export interface InputFieldProps {
+  id?: string;
+  label: string;
+  name?: string;
+  value: string;
+  placeholder?: string;
+  type?: "text" | "email" | "password" | "search" | "tel" | "url";
+  onChange: (value: string) => void;
+  helperText?: string;
+  error?: string;
+  required?: boolean;
+  disabled?: boolean;
+}
+
+export function InputField({
+  id,
+  label,
+  name,
+  value,
+  placeholder,
+  type = "text",
+  onChange,
+  helperText,
+  error,
+  required = false,
+  disabled = false
+}: InputFieldProps) {
+  const inputId = id ?? name ?? label.toLowerCase().replace(/\s+/g, "-");
+  const describedBy = error ? `${inputId}-error` : helperText ? `${inputId}-helper` : undefined;
+
+  return (
+    <div style={fieldContainerStyle}>
+      <label htmlFor={inputId} style={labelStyle}>
+        {label}
+        {required ? " *" : ""}
+      </label>
+      <input
+        aria-describedby={describedBy}
+        aria-invalid={Boolean(error)}
+        disabled={disabled}
+        id={inputId}
+        name={name}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={placeholder}
+        required={required}
+        style={{
+          ...baseFieldStyle,
+          borderColor: error ? "#dc2626" : baseFieldStyle.borderColor,
+          opacity: disabled ? 0.7 : 1
+        }}
+        type={type}
+        value={value}
+      />
+      {error ? (
+        <p id={`${inputId}-error`} style={errorTextStyle}>
+          {error}
+        </p>
+      ) : helperText ? (
+        <p id={`${inputId}-helper`} style={helperTextStyle}>
+          {helperText}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+export interface SelectOption {
+  label: string;
+  value: string;
+}
+
+export interface SelectFieldProps {
+  id?: string;
+  label: string;
+  name?: string;
+  value: string;
+  options: SelectOption[];
+  onChange: (value: string) => void;
+  placeholder?: string;
+  helperText?: string;
+  error?: string;
+  required?: boolean;
+  disabled?: boolean;
+}
+
+export function SelectField({
+  id,
+  label,
+  name,
+  value,
+  options,
+  onChange,
+  placeholder,
+  helperText,
+  error,
+  required = false,
+  disabled = false
+}: SelectFieldProps) {
+  const selectId = id ?? name ?? label.toLowerCase().replace(/\s+/g, "-");
+  const describedBy = error ? `${selectId}-error` : helperText ? `${selectId}-helper` : undefined;
+
+  return (
+    <div style={fieldContainerStyle}>
+      <label htmlFor={selectId} style={labelStyle}>
+        {label}
+        {required ? " *" : ""}
+      </label>
+      <select
+        aria-describedby={describedBy}
+        aria-invalid={Boolean(error)}
+        disabled={disabled}
+        id={selectId}
+        name={name}
+        onChange={(event) => onChange(event.target.value)}
+        required={required}
+        style={{
+          ...baseFieldStyle,
+          backgroundColor: "white",
+          borderColor: error ? "#dc2626" : baseFieldStyle.borderColor,
+          opacity: disabled ? 0.7 : 1
+        }}
+        value={value}
+      >
+        {placeholder ? (
+          <option value="" disabled>
+            {placeholder}
+          </option>
+        ) : null}
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+      {error ? (
+        <p id={`${selectId}-error`} style={errorTextStyle}>
+          {error}
+        </p>
+      ) : helperText ? (
+        <p id={`${selectId}-helper`} style={helperTextStyle}>
+          {helperText}
+        </p>
+      ) : null}
+    </div>
+  );
+}

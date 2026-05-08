@@ -27,3 +27,38 @@ export async function requestJson(url, init) {
     }
     return (await response.json());
 }
+export function required(message = "This field is required") {
+    return (value) => (value.trim().length === 0 ? message : null);
+}
+export function minLength(minimum, message = `Must be at least ${minimum} characters`) {
+    return (value) => (value.trim().length < minimum ? message : null);
+}
+export function email(message = "Must be a valid email address") {
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return (value) => (emailPattern.test(value.trim()) ? null : message);
+}
+export function composeValidators(...validators) {
+    return (value) => {
+        for (const validate of validators) {
+            const error = validate(value);
+            if (error) {
+                return error;
+            }
+        }
+        return null;
+    };
+}
+export function validateObject(data, schema) {
+    const errors = {};
+    for (const key of Object.keys(schema)) {
+        const validator = schema[key];
+        if (!validator) {
+            continue;
+        }
+        const validationError = validator(data[key]);
+        if (validationError) {
+            errors[key] = validationError;
+        }
+    }
+    return errors;
+}

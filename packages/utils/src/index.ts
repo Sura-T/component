@@ -42,3 +42,54 @@ export async function requestJson<T>(
 
   return (await response.json()) as T;
 }
+
+export type Validator<T> = (value: T) => string | null;
+
+export function required(message = "This field is required"): Validator<string> {
+  return (value) => (value.trim().length === 0 ? message : null);
+}
+
+export function minLength(
+  minimum: number,
+  message = `Must be at least ${minimum} characters`
+): Validator<string> {
+  return (value) => (value.trim().length < minimum ? message : null);
+}
+
+export function email(message = "Must be a valid email address"): Validator<string> {
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return (value) => (emailPattern.test(value.trim()) ? null : message);
+}
+
+export function composeValidators<T>(...validators: Validator<T>[]): Validator<T> {
+  return (value) => {
+    for (const validate of validators) {
+      const error = validate(value);
+      if (error) {
+        return error;
+      }
+    }
+    return null;
+  };
+}
+
+export function validateObject<T extends object>(
+  data: T,
+  schema: Partial<{ [K in keyof T]: Validator<T[K]> }>
+): Partial<Record<keyof T, string>> {
+  const errors: Partial<Record<keyof T, string>> = {};
+
+  for (const key of Object.keys(schema) as Array<keyof T>) {
+    const validator = schema[key];
+    if (!validator) {
+      continue;
+    }
+
+    const validationError = validator(data[key]);
+    if (validationError) {
+      errors[key] = validationError;
+    }
+  }
+
+  return errors;
+}

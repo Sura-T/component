@@ -78,3 +78,49 @@ export function SectionHeader({ title, subtitle, action }) {
                             margin: "0.25rem 0 0 0"
                         }, children: subtitle })) : null] }), action] }));
 }
+const fieldContainerStyle = {
+    display: "flex",
+    flexDirection: "column",
+    gap: "0.35rem"
+};
+const labelStyle = {
+    color: "#374151",
+    fontSize: "0.85rem",
+    fontWeight: 600
+};
+const helperTextStyle = {
+    color: "#6b7280",
+    fontSize: "0.8rem",
+    margin: 0
+};
+const errorTextStyle = {
+    color: "#b91c1c",
+    fontSize: "0.8rem",
+    margin: 0
+};
+const baseFieldStyle = {
+    border: "1px solid #d1d5db",
+    borderRadius: "8px",
+    color: "#111827",
+    fontSize: "0.9rem",
+    padding: "0.5rem 0.65rem"
+};
+export function InputField({ id, label, name, value, placeholder, type = "text", onChange, helperText, error, required = false, disabled = false }) {
+    const inputId = id ?? name ?? label.toLowerCase().replace(/\s+/g, "-");
+    const describedBy = error ? `${inputId}-error` : helperText ? `${inputId}-helper` : undefined;
+    return (_jsxs("div", { style: fieldContainerStyle, children: [_jsxs("label", { htmlFor: inputId, style: labelStyle, children: [label, required ? " *" : ""] }), _jsx("input", { "aria-describedby": describedBy, "aria-invalid": Boolean(error), disabled: disabled, id: inputId, name: name, onChange: (event) => onChange(event.target.value), placeholder: placeholder, required: required, style: {
+                    ...baseFieldStyle,
+                    borderColor: error ? "#dc2626" : baseFieldStyle.borderColor,
+                    opacity: disabled ? 0.7 : 1
+                }, type: type, value: value }), error ? (_jsx("p", { id: `${inputId}-error`, style: errorTextStyle, children: error })) : helperText ? (_jsx("p", { id: `${inputId}-helper`, style: helperTextStyle, children: helperText })) : null] }));
+}
+export function SelectField({ id, label, name, value, options, onChange, placeholder, helperText, error, required = false, disabled = false }) {
+    const selectId = id ?? name ?? label.toLowerCase().replace(/\s+/g, "-");
+    const describedBy = error ? `${selectId}-error` : helperText ? `${selectId}-helper` : undefined;
+    return (_jsxs("div", { style: fieldContainerStyle, children: [_jsxs("label", { htmlFor: selectId, style: labelStyle, children: [label, required ? " *" : ""] }), _jsxs("select", { "aria-describedby": describedBy, "aria-invalid": Boolean(error), disabled: disabled, id: selectId, name: name, onChange: (event) => onChange(event.target.value), required: required, style: {
+                    ...baseFieldStyle,
+                    backgroundColor: "white",
+                    borderColor: error ? "#dc2626" : baseFieldStyle.borderColor,
+                    opacity: disabled ? 0.7 : 1
+                }, value: value, children: [placeholder ? (_jsx("option", { value: "", disabled: true, children: placeholder })) : null, options.map((option) => (_jsx("option", { value: option.value, children: option.label }, option.value)))] }), error ? (_jsx("p", { id: `${selectId}-error`, style: errorTextStyle, children: error })) : helperText ? (_jsx("p", { id: `${selectId}-helper`, style: helperTextStyle, children: helperText })) : null] }));
+}
