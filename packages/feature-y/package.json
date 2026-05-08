@@ -9,7 +9,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json"
+    "build": "npm run build -w @monorepo/ui-components && npm run build -w @monorepo/utils && tsc -p tsconfig.json"
   },
   "dependencies": {
     "@monorepo/ui-components": "1.0.0",

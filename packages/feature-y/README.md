@@ -5,6 +5,9 @@ Feature Y package demonstrating composition of shared components and utilities.
 ## Exports
 
 - `ActivityFeed`
+- `ActivityFeedWithSeverity`
+- `filterByLevel`
+- `warningCount`
 
 ## Build
 

@@ -7,6 +7,8 @@ Reusable UI components shared across feature packages.
 - `Button`
 - `Card`
 - `Badge`
+- `Stack`
+- `SectionHeader`
 
 ## Build
 

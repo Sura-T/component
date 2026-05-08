@@ -96,3 +96,78 @@ export function Badge({ label }: BadgeProps) {
     </span>
   );
 }
+
+export interface StackProps extends PropsWithChildren {
+  direction?: "row" | "column";
+  gap?: string;
+  align?: CSSProperties["alignItems"];
+  justify?: CSSProperties["justifyContent"];
+  wrap?: CSSProperties["flexWrap"];
+}
+
+export function Stack({
+  direction = "column",
+  gap = "0.75rem",
+  align = "stretch",
+  justify = "flex-start",
+  wrap = "nowrap",
+  children
+}: StackProps) {
+  return (
+    <div
+      style={{
+        alignItems: align,
+        display: "flex",
+        flexDirection: direction,
+        flexWrap: wrap,
+        gap,
+        justifyContent: justify
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+export interface SectionHeaderProps {
+  title: string;
+  subtitle?: string;
+  action?: ReactNode;
+}
+
+export function SectionHeader({ title, subtitle, action }: SectionHeaderProps) {
+  return (
+    <header
+      style={{
+        alignItems: "flex-start",
+        display: "flex",
+        justifyContent: "space-between",
+        marginBottom: "0.75rem"
+      }}
+    >
+      <div>
+        <h2
+          style={{
+            color: "#111827",
+            fontSize: "1.1rem",
+            margin: 0
+          }}
+        >
+          {title}
+        </h2>
+        {subtitle ? (
+          <p
+            style={{
+              color: "#6b7280",
+              fontSize: "0.9rem",
+              margin: "0.25rem 0 0 0"
+            }}
+          >
+            {subtitle}
+          </p>
+        ) : null}
+      </div>
+      {action}
+    </header>
+  );
+}

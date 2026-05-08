@@ -5,7 +5,9 @@ Feature X package demonstrating composition of shared components and utilities.
 ## Exports
 
 - `TaskBoard`
+- `TaskBoardWithFilters`
 - `completionRate`
+- `filterTasks`
 
 ## Build
 
