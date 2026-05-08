@@ -1,0 +1,14 @@
+{
+  "name": "@monorepo/utils",
+  "version": "1.0.0",
+  "description": "Shared utility helpers for all workspace packages.",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  }
+}

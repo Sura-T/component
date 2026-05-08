@@ -1,0 +1,22 @@
+{
+  "name": "@monorepo/feature-y",
+  "version": "1.0.0",
+  "description": "Feature Y composites built from shared UI and utilities.",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@monorepo/ui-components": "1.0.0",
+    "@monorepo/utils": "1.0.0",
+    "react": "^19.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.2"
+  }
+}

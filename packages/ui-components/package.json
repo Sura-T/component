@@ -1,0 +1,21 @@
+{
+  "name": "@monorepo/ui-components",
+  "version": "1.0.0",
+  "description": "Reusable UI component library for shared consumption.",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.2",
+    "react": "^19.2.0"
+  }
+}
