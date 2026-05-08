@@ -43,18 +43,6 @@ Each member must deliver:
   - `systems/abdi-esayas/system-a`: Staff onboarding workflow
   - `systems/abdi-esayas/system-b`: Support ticket intake module
 
-## Chera Mihretu
-
-- **Group package ownership**
-  - Add analytics-oriented UI components (`StatCard`, `MiniChartContainer`) in `ui-components`.
-  - Add numeric aggregation helpers in `utils`.
-- **Feature composites**
-  - `feature-x`: `KanbanSummaryWidget`
-  - `feature-y`: `KpiOverviewGrid`
-- **Individual systems**
-  - `systems/chera-mihretu/system-a`: Sales snapshot system
-  - `systems/chera-mihretu/system-b`: Incident trend viewer
-
 ## Tamirat Kebede
 
 - **Group package ownership**
