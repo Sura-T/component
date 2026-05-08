@@ -6,6 +6,7 @@ Feature Y package demonstrating composition of shared components and utilities.
 
 - `ActivityFeed`
 - `ActivityFeedWithSeverity`
+- `UserProfileStatusPanel`
 - `filterByLevel`
 - `warningCount`
 

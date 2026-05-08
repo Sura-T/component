@@ -17,4 +17,16 @@ export interface ActivityFeedWithSeverityProps extends ActivityFeedProps {
     onLevelChange?: (level: ActivityLevelFilter) => void;
 }
 export declare function ActivityFeedWithSeverity({ items, defaultLevel, onLevelChange }: ActivityFeedWithSeverityProps): import("react/jsx-runtime").JSX.Element;
+type ProfileState = "active" | "away" | "busy";
+export interface UserProfileStatusValues {
+    displayName: string;
+    emailAddress: string;
+    status: ProfileState;
+}
+export interface UserProfileStatusPanelProps {
+    initialValues?: Partial<UserProfileStatusValues>;
+    onSave?: (values: UserProfileStatusValues) => void;
+}
+export declare function UserProfileStatusPanel({ initialValues, onSave }: UserProfileStatusPanelProps): import("react/jsx-runtime").JSX.Element;
+export {};
 //# sourceMappingURL=index.d.ts.map

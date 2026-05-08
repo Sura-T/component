@@ -6,6 +6,7 @@ Feature X package demonstrating composition of shared components and utilities.
 
 - `TaskBoard`
 - `TaskBoardWithFilters`
+- `TaskCreationWizard`
 - `completionRate`
 - `filterTasks`
 
