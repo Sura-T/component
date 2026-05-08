@@ -47,5 +47,21 @@ export interface NotificationDigestListProps {
     onVisibleItemsChange?: (visibleItems: NotificationDigestItem[]) => void;
 }
 export declare function NotificationDigestList({ items, defaultFilter, onVisibleItemsChange }: NotificationDigestListProps): import("react/jsx-runtime").JSX.Element;
+export type AnnouncementChannel = "web" | "email" | "mobile";
+export interface AnnouncementItem {
+    id: string;
+    title: string;
+    body: string;
+    publishedAt: string;
+    channel: AnnouncementChannel;
+    audience?: string;
+}
+export interface AnnouncementTimelineProps {
+    announcements: AnnouncementItem[];
+    rangeStart?: string | Date;
+    rangeEnd?: string | Date;
+    onDateSelect?: (dateKey: string) => void;
+}
+export declare function AnnouncementTimeline({ announcements, rangeStart, rangeEnd, onDateSelect }: AnnouncementTimelineProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=index.d.ts.map

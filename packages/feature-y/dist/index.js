@@ -1,7 +1,7 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useEffect, useMemo, useState } from "react";
 import { Badge, Button, Card, InputField, SectionHeader, SelectField, Stack } from "@monorepo/ui-components";
-import { buildQueryString, composeValidators, email, formatDate, required, toTitleCase, validateObject } from "@monorepo/utils";
+import { buildQueryString, composeValidators, email, formatDate, getDateRange, groupEventsByDate, isDateWithinRange, required, toDateKey, toTitleCase, validateObject } from "@monorepo/utils";
 const levelOptions = ["all", "warning", "info"];
 function formatLevel(level) {
     return level === "warning" ? "Warning" : "Info";
@@ -112,4 +112,40 @@ export function NotificationDigestList({ items, defaultFilter = "all", onVisible
                             padding: "0.45rem 0.55rem",
                             width: "100%"
                         }, value: searchTerm })] }), _jsx(Stack, { direction: "row", gap: "0.5rem", wrap: "wrap", children: digestFilters.map((filter) => (_jsx(Button, { label: toTitleCase(filter), onClick: () => setActiveFilter(filter), variant: activeFilter === filter ? "primary" : "secondary" }, filter))) }), _jsxs("div", { style: { color: "#6b7280", fontSize: "0.85rem", marginTop: "0.85rem" }, children: ["Query preview: ", queryPreview || "(empty)"] }), _jsx("ul", { style: { margin: "0.85rem 0 0 0", paddingInlineStart: "1.25rem" }, children: visibleItems.map((item) => (_jsxs("li", { style: { marginBottom: "0.75rem" }, children: [_jsxs("div", { style: { display: "flex", gap: "0.5rem", marginBottom: "0.2rem" }, children: [_jsx("strong", { children: item.title }), _jsx(Badge, { label: toTitleCase(item.level) })] }), _jsx("div", { children: item.message }), _jsxs("div", { style: { color: "#6b7280", fontSize: "0.85rem" }, children: [toTitleCase(item.channel), " | ", item.recipient, " | ", formatDate(item.createdAt)] })] }, item.id))) })] }));
+}
+const timelineChannelOptions = ["all", "web", "email", "mobile"];
+function sortNewestFirst(left, right) {
+    return new Date(right.publishedAt).getTime() - new Date(left.publishedAt).getTime();
+}
+export function AnnouncementTimeline({ announcements, rangeStart, rangeEnd, onDateSelect }) {
+    const sortedAnnouncements = useMemo(() => [...announcements].sort(sortNewestFirst), [announcements]);
+    const oldestAnnouncement = sortedAnnouncements[sortedAnnouncements.length - 1];
+    const newestAnnouncement = sortedAnnouncements[0];
+    const computedRangeStart = rangeStart ?? oldestAnnouncement?.publishedAt ?? new Date();
+    const computedRangeEnd = rangeEnd ?? newestAnnouncement?.publishedAt ?? new Date();
+    const timelineDays = useMemo(() => getDateRange(computedRangeStart, computedRangeEnd), [computedRangeStart, computedRangeEnd]);
+    const [selectedDay, setSelectedDay] = useState(() => toDateKey(computedRangeEnd));
+    const [channelFilter, setChannelFilter] = useState("all");
+    useEffect(() => {
+        if (!timelineDays.includes(selectedDay) && timelineDays.length > 0) {
+            setSelectedDay(timelineDays[timelineDays.length - 1]);
+        }
+    }, [timelineDays, selectedDay]);
+    const groupedTimeline = useMemo(() => {
+        const rangedAnnouncements = sortedAnnouncements.filter((item) => isDateWithinRange(item.publishedAt, computedRangeStart, computedRangeEnd));
+        const filteredAnnouncements = channelFilter === "all"
+            ? rangedAnnouncements
+            : rangedAnnouncements.filter((item) => item.channel === channelFilter);
+        return groupEventsByDate(filteredAnnouncements, (item) => item.publishedAt);
+    }, [sortedAnnouncements, channelFilter, computedRangeStart, computedRangeEnd]);
+    const visibleAnnouncements = groupedTimeline[selectedDay] ?? [];
+    const queryPreview = buildQueryString({
+        day: selectedDay,
+        channel: channelFilter === "all" ? undefined : channelFilter,
+        visible: visibleAnnouncements.length
+    });
+    return (_jsxs(Card, { title: "Feature Y: Announcement Timeline", actions: _jsxs(Stack, { direction: "row", gap: "0.5rem", align: "center", children: [_jsx(Badge, { label: `${timelineDays.length} timeline days` }), _jsx(Badge, { label: `${visibleAnnouncements.length} announcements` })] }), children: [_jsx(SectionHeader, { title: "Campus Announcement Timeline", subtitle: "Navigate published updates by day and delivery channel." }), _jsx(Stack, { direction: "row", gap: "0.5rem", wrap: "wrap", children: timelineChannelOptions.map((channel) => (_jsx(Button, { label: toTitleCase(channel), onClick: () => setChannelFilter(channel), variant: channelFilter === channel ? "primary" : "secondary" }, channel))) }), _jsx(Stack, { direction: "row", gap: "0.5rem", wrap: "wrap", children: timelineDays.map((dateKey) => (_jsx(Button, { label: `${formatDate(dateKey)} (${(groupedTimeline[dateKey] ?? []).length})`, onClick: () => {
+                        setSelectedDay(dateKey);
+                        onDateSelect?.(dateKey);
+                    }, variant: selectedDay === dateKey ? "primary" : "secondary" }, dateKey))) }), _jsxs("div", { style: { color: "#6b7280", fontSize: "0.85rem", marginTop: "0.75rem" }, children: ["Query preview: ", queryPreview || "(empty)"] }), _jsx("ul", { style: { margin: "0.85rem 0 0 0", paddingInlineStart: "1.25rem" }, children: visibleAnnouncements.map((announcement) => (_jsxs("li", { style: { marginBottom: "0.75rem" }, children: [_jsxs("div", { style: { display: "flex", gap: "0.5rem", marginBottom: "0.2rem" }, children: [_jsx("strong", { children: announcement.title }), _jsx(Badge, { label: toTitleCase(announcement.channel) })] }), _jsx("div", { children: announcement.body }), _jsxs("div", { style: { color: "#6b7280", fontSize: "0.85rem" }, children: [announcement.audience ? `${announcement.audience} | ` : "", formatDate(announcement.publishedAt)] })] }, announcement.id))) })] }));
 }

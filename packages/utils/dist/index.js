@@ -149,3 +149,48 @@ export function getDateAndStringExamples(referenceDate = new Date("2026-04-25T09
         })
     };
 }
+function toUtcDate(value) {
+    const rawDate = value instanceof Date ? value : new Date(value);
+    return new Date(Date.UTC(rawDate.getUTCFullYear(), rawDate.getUTCMonth(), rawDate.getUTCDate()));
+}
+export function toDateKey(value) {
+    return toUtcDate(value).toISOString().slice(0, 10);
+}
+export function getDateRange(start, end) {
+    const startUtc = toUtcDate(start);
+    const endUtc = toUtcDate(end);
+    const rangeStart = startUtc.getTime() <= endUtc.getTime() ? startUtc : endUtc;
+    const rangeEnd = startUtc.getTime() <= endUtc.getTime() ? endUtc : startUtc;
+    const result = [];
+    const cursor = new Date(rangeStart);
+    while (cursor.getTime() <= rangeEnd.getTime()) {
+        result.push(toDateKey(cursor));
+        cursor.setUTCDate(cursor.getUTCDate() + 1);
+    }
+    return result;
+}
+export function getDateRangeFrom(start, days) {
+    const normalizedDays = Number.isFinite(days) ? Math.max(1, Math.floor(days)) : 1;
+    const startDate = toUtcDate(start);
+    const endDate = new Date(startDate);
+    endDate.setUTCDate(endDate.getUTCDate() + normalizedDays - 1);
+    return getDateRange(startDate, endDate);
+}
+export function isDateWithinRange(date, start, end) {
+    const currentDate = toUtcDate(date).getTime();
+    const startDate = toUtcDate(start).getTime();
+    const endDate = toUtcDate(end).getTime();
+    const min = Math.min(startDate, endDate);
+    const max = Math.max(startDate, endDate);
+    return currentDate >= min && currentDate <= max;
+}
+export function groupEventsByDate(events, getDate) {
+    return events.reduce((grouped, event) => {
+        const key = toDateKey(getDate(event));
+        if (!grouped[key]) {
+            grouped[key] = [];
+        }
+        grouped[key].push(event);
+        return grouped;
+    }, {});
+}

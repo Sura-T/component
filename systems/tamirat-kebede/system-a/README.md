@@ -1,10 +1,23 @@
 # System A - Event Management Board
 
-## Goal
+## Purpose
 
-Configure event and deadline workflows with shared feature modules.
+This system assembles event planning workflows with deadline-based scheduling and task execution tracking.
 
-## Suggested Imports
+## Architecture
 
-- deadline and planning composites from `@monorepo/feature-x`
-- date range helpers from `@monorepo/utils`
+- **Assembly layer only:** `src/App.tsx`
+- **Imported composites:** `DeadlineCalendarStrip`, `TaskBoardWithFilters` from `@monorepo/feature-x`
+- **Shared utility usage:** `getDateRangeFrom`, `toDateKey`, and `toTitleCase` from `@monorepo/utils`
+
+## Behavior
+
+- Displays deadline counts in a calendar strip across a 7-day window.
+- Links selected calendar day to a daily task snapshot.
+- Supports follow-up task creation through shared task board composites.
+
+## Run
+
+```bash
+npm run build -w @systems/tamirat-system-a
+```

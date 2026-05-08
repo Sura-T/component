@@ -11,6 +11,7 @@
     "build": "npm run build --workspaces --if-present",
     "build:gebriel": "npm run build -w @systems/gebriel-system-a && npm run build -w @systems/gebriel-system-b",
     "build:surafel": "npm run build -w @systems/surafel-system-a && npm run build -w @systems/surafel-system-b",
+    "build:tamirat": "npm run build -w @systems/tamirat-system-a && npm run build -w @systems/tamirat-system-b",
     "dev": "npm run dev --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
     "clean": "npm run clean --workspaces --if-present"

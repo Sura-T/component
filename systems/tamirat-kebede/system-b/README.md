@@ -1,10 +1,23 @@
 # System B - Campus Update Portal
 
-## Goal
+## Purpose
 
-Configure timeline and announcement delivery screens from shared features.
+This system assembles a campus communication portal with timeline navigation and digest monitoring.
 
-## Suggested Imports
+## Architecture
 
-- announcement/timeline composites from `@monorepo/feature-y`
-- formatting helpers from `@monorepo/utils`
+- **Assembly layer only:** `src/App.tsx`
+- **Imported composites:** `AnnouncementTimeline`, `NotificationDigestList` from `@monorepo/feature-y`
+- **Shared utility usage:** `getDateRange`, `groupEventsByDate` from `@monorepo/utils`
+
+## Behavior
+
+- Presents campus announcements in a date-driven timeline.
+- Tracks selected timeline day for focused review.
+- Shows grouped announcement counts and digest summaries.
+
+## Run
+
+```bash
+npm run build -w @systems/tamirat-system-b
+```

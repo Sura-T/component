@@ -27,5 +27,10 @@ export interface UtilityExampleSnapshot {
     queryPreview: string;
 }
 export declare function getDateAndStringExamples(referenceDate?: Date): UtilityExampleSnapshot;
+export declare function toDateKey(value: string | Date): string;
+export declare function getDateRange(start: string | Date, end: string | Date): string[];
+export declare function getDateRangeFrom(start: string | Date, days: number): string[];
+export declare function isDateWithinRange(date: string | Date, start: string | Date, end: string | Date): boolean;
+export declare function groupEventsByDate<T>(events: T[], getDate: (item: T) => string | Date): Record<string, T[]>;
 export {};
 //# sourceMappingURL=index.d.ts.map

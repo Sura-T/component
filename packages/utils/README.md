@@ -17,6 +17,11 @@ Utility helpers consumed by all feature packages.
 - `requestJsonWithRetry`
 - `parseApiError`
 - `getDateAndStringExamples`
+- `toDateKey`
+- `getDateRange`
+- `getDateRangeFrom`
+- `isDateWithinRange`
+- `groupEventsByDate`
 
 ## Validation examples
 
@@ -47,6 +52,21 @@ const data = await requestJsonWithRetry(url, undefined, {
   attempts: 3,
   initialDelayMs: 200
 });
+```
+
+## Date range and grouping examples
+
+```ts
+import { getDateRangeFrom, groupEventsByDate, isDateWithinRange } from "@monorepo/utils";
+
+const days = getDateRangeFrom("2026-05-01", 7);
+
+const grouped = groupEventsByDate(
+  [{ id: "1", dueAt: "2026-05-03T08:00:00.000Z" }],
+  (item) => item.dueAt
+);
+
+const isVisible = isDateWithinRange("2026-05-03", days[0], days[days.length - 1]);
 ```
 
 ## Build

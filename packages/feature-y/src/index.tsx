@@ -13,7 +13,11 @@ import {
   composeValidators,
   email,
   formatDate,
+  getDateRange,
+  groupEventsByDate,
+  isDateWithinRange,
   required,
+  toDateKey,
   toTitleCase,
   validateObject
 } from "@monorepo/utils";
@@ -402,6 +406,144 @@ export function NotificationDigestList({
             <div>{item.message}</div>
             <div style={{ color: "#6b7280", fontSize: "0.85rem" }}>
               {toTitleCase(item.channel)} | {item.recipient} | {formatDate(item.createdAt)}
+            </div>
+          </li>
+        ))}
+      </ul>
+    </Card>
+  );
+}
+
+export type AnnouncementChannel = "web" | "email" | "mobile";
+
+export interface AnnouncementItem {
+  id: string;
+  title: string;
+  body: string;
+  publishedAt: string;
+  channel: AnnouncementChannel;
+  audience?: string;
+}
+
+export interface AnnouncementTimelineProps {
+  announcements: AnnouncementItem[];
+  rangeStart?: string | Date;
+  rangeEnd?: string | Date;
+  onDateSelect?: (dateKey: string) => void;
+}
+
+type AnnouncementChannelFilter = "all" | AnnouncementChannel;
+const timelineChannelOptions: AnnouncementChannelFilter[] = ["all", "web", "email", "mobile"];
+
+function sortNewestFirst(left: AnnouncementItem, right: AnnouncementItem): number {
+  return new Date(right.publishedAt).getTime() - new Date(left.publishedAt).getTime();
+}
+
+export function AnnouncementTimeline({
+  announcements,
+  rangeStart,
+  rangeEnd,
+  onDateSelect
+}: AnnouncementTimelineProps) {
+  const sortedAnnouncements = useMemo(
+    () => [...announcements].sort(sortNewestFirst),
+    [announcements]
+  );
+
+  const oldestAnnouncement = sortedAnnouncements[sortedAnnouncements.length - 1];
+  const newestAnnouncement = sortedAnnouncements[0];
+  const computedRangeStart = rangeStart ?? oldestAnnouncement?.publishedAt ?? new Date();
+  const computedRangeEnd = rangeEnd ?? newestAnnouncement?.publishedAt ?? new Date();
+
+  const timelineDays = useMemo(
+    () => getDateRange(computedRangeStart, computedRangeEnd),
+    [computedRangeStart, computedRangeEnd]
+  );
+
+  const [selectedDay, setSelectedDay] = useState<string>(() => toDateKey(computedRangeEnd));
+  const [channelFilter, setChannelFilter] = useState<AnnouncementChannelFilter>("all");
+
+  useEffect(() => {
+    if (!timelineDays.includes(selectedDay) && timelineDays.length > 0) {
+      setSelectedDay(timelineDays[timelineDays.length - 1]);
+    }
+  }, [timelineDays, selectedDay]);
+
+  const groupedTimeline = useMemo(() => {
+    const rangedAnnouncements = sortedAnnouncements.filter((item) =>
+      isDateWithinRange(item.publishedAt, computedRangeStart, computedRangeEnd)
+    );
+
+    const filteredAnnouncements =
+      channelFilter === "all"
+        ? rangedAnnouncements
+        : rangedAnnouncements.filter((item) => item.channel === channelFilter);
+
+    return groupEventsByDate(filteredAnnouncements, (item) => item.publishedAt);
+  }, [sortedAnnouncements, channelFilter, computedRangeStart, computedRangeEnd]);
+
+  const visibleAnnouncements = groupedTimeline[selectedDay] ?? [];
+  const queryPreview = buildQueryString({
+    day: selectedDay,
+    channel: channelFilter === "all" ? undefined : channelFilter,
+    visible: visibleAnnouncements.length
+  });
+
+  return (
+    <Card
+      title="Feature Y: Announcement Timeline"
+      actions={
+        <Stack direction="row" gap="0.5rem" align="center">
+          <Badge label={`${timelineDays.length} timeline days`} />
+          <Badge label={`${visibleAnnouncements.length} announcements`} />
+        </Stack>
+      }
+    >
+      <SectionHeader
+        title="Campus Announcement Timeline"
+        subtitle="Navigate published updates by day and delivery channel."
+      />
+
+      <Stack direction="row" gap="0.5rem" wrap="wrap">
+        {timelineChannelOptions.map((channel) => (
+          <Button
+            key={channel}
+            label={toTitleCase(channel)}
+            onClick={() => setChannelFilter(channel)}
+            variant={channelFilter === channel ? "primary" : "secondary"}
+          />
+        ))}
+      </Stack>
+
+      <Stack direction="row" gap="0.5rem" wrap="wrap">
+        {timelineDays.map((dateKey) => (
+          <Button
+            key={dateKey}
+            label={`${formatDate(dateKey)} (${(groupedTimeline[dateKey] ?? []).length})`}
+            onClick={() => {
+              setSelectedDay(dateKey);
+              onDateSelect?.(dateKey);
+            }}
+            variant={selectedDay === dateKey ? "primary" : "secondary"}
+          />
+        ))}
+      </Stack>
+
+      <div style={{ color: "#6b7280", fontSize: "0.85rem", marginTop: "0.75rem" }}>
+        Query preview: {queryPreview || "(empty)"}
+      </div>
+
+      <ul style={{ margin: "0.85rem 0 0 0", paddingInlineStart: "1.25rem" }}>
+        {visibleAnnouncements.map((announcement) => (
+          <li key={announcement.id} style={{ marginBottom: "0.75rem" }}>
+            <div style={{ display: "flex", gap: "0.5rem", marginBottom: "0.2rem" }}>
+              <strong>{announcement.title}</strong>
+              <Badge label={toTitleCase(announcement.channel)} />
+            </div>
+            <div>{announcement.body}</div>
+            <div style={{ color: "#6b7280", fontSize: "0.85rem" }}>
+              {announcement.audience ? `${announcement.audience} | ` : ""}
+              {formatDate(announcement.publishedAt)}
             </div>
           </li>
         ))}

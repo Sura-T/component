@@ -13,8 +13,11 @@ import {
   composeValidators,
   email,
   formatDate,
+  getDateRangeFrom,
+  groupEventsByDate,
   minLength,
   required,
+  toDateKey,
   toTitleCase,
   validateObject
 } from "@monorepo/utils";
@@ -401,6 +404,93 @@ export function TaskSearchAndSortPanel({
             <strong>{toTitleCase(task.title)}</strong>
             <div style={{ color: "#6b7280", fontSize: "0.85rem" }}>
               Status: {toTitleCase(task.status)} | Created: {formatDate(task.createdAt)}
+            </div>
+          </li>
+        ))}
+      </ul>
+    </Card>
+  );
+}
+
+export type DeadlineStatus = "planned" | "due" | "overdue" | "completed";
+
+export interface DeadlineItem {
+  id: string;
+  title: string;
+  dueDate: string;
+  status: DeadlineStatus;
+  category?: string;
+}
+
+export interface DeadlineCalendarStripProps {
+  deadlines: DeadlineItem[];
+  anchorDate?: string | Date;
+  visibleDays?: number;
+  onDateSelect?: (dateKey: string) => void;
+}
+
+export function DeadlineCalendarStrip({
+  deadlines,
+  anchorDate = new Date(),
+  visibleDays = 7,
+  onDateSelect
+}: DeadlineCalendarStripProps) {
+  const dateRange = useMemo(
+    () => getDateRangeFrom(anchorDate, visibleDays),
+    [anchorDate, visibleDays]
+  );
+  const [selectedDate, setSelectedDate] = useState<string>(() => toDateKey(anchorDate));
+
+  useEffect(() => {
+    if (!dateRange.includes(selectedDate) && dateRange.length > 0) {
+      setSelectedDate(dateRange[0]);
+    }
+  }, [dateRange, selectedDate]);
+
+  const groupedDeadlines = useMemo(
+    () => groupEventsByDate(deadlines, (item) => item.dueDate),
+    [deadlines]
+  );
+
+  const visibleDeadlines = groupedDeadlines[selectedDate] ?? [];
+  const pendingCount = deadlines.filter((item) => item.status !== "completed").length;
+
+  return (
+    <Card
+      title="Feature X: Deadline Calendar Strip"
+      actions={
+        <Stack direction="row" gap="0.5rem" align="center">
+          <Badge label={`${pendingCount} pending`} />
+          <Badge label={`${visibleDeadlines.length} on selected day`} />
+        </Stack>
+      }
+    >
+      <SectionHeader
+        title="Deadline Window"
+        subtitle="Review due items by day and focus on urgent work."
+      />
+
+      <Stack direction="row" gap="0.5rem" wrap="wrap">
+        {dateRange.map((dateKey) => (
+          <Button
+            key={dateKey}
+            label={`${formatDate(dateKey)} (${(groupedDeadlines[dateKey] ?? []).length})`}
+            onClick={() => {
+              setSelectedDate(dateKey);
+              onDateSelect?.(dateKey);
+            }}
+            variant={selectedDate === dateKey ? "primary" : "secondary"}
+          />
+        ))}
+      </Stack>
+
+      <ul style={{ margin: "0.9rem 0 0 0", paddingInlineStart: "1.25rem" }}>
+        {visibleDeadlines.map((item) => (
+          <li key={item.id} style={{ marginBottom: "0.6rem" }}>
+            <strong>{toTitleCase(item.title)}</strong>
+            <div style={{ color: "#6b7280", fontSize: "0.85rem" }}>
+              {toTitleCase(item.status)}
+              {item.category ? ` | ${toTitleCase(item.category)}` : ""}
             </div>
           </li>
         ))}

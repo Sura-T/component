@@ -8,6 +8,7 @@ Feature X package demonstrating composition of shared components and utilities.
 - `TaskBoardWithFilters`
 - `TaskCreationWizard`
 - `TaskSearchAndSortPanel`
+- `DeadlineCalendarStrip`
 - `completionRate`
 - `filterTasks`
 - `searchAndSortTasks`

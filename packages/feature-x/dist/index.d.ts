@@ -39,5 +39,20 @@ export interface TaskSearchAndSortPanelProps {
     onVisibleTasksChange?: (visibleTasks: Task[]) => void;
 }
 export declare function TaskSearchAndSortPanel({ tasks, defaultSearch, defaultSort, onVisibleTasksChange }: TaskSearchAndSortPanelProps): import("react/jsx-runtime").JSX.Element;
+export type DeadlineStatus = "planned" | "due" | "overdue" | "completed";
+export interface DeadlineItem {
+    id: string;
+    title: string;
+    dueDate: string;
+    status: DeadlineStatus;
+    category?: string;
+}
+export interface DeadlineCalendarStripProps {
+    deadlines: DeadlineItem[];
+    anchorDate?: string | Date;
+    visibleDays?: number;
+    onDateSelect?: (dateKey: string) => void;
+}
+export declare function DeadlineCalendarStrip({ deadlines, anchorDate, visibleDays, onDateSelect }: DeadlineCalendarStripProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=index.d.ts.map

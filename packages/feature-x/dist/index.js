@@ -1,7 +1,7 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useEffect, useMemo, useState } from "react";
 import { Badge, Button, Card, InputField, SectionHeader, SelectField, Stack } from "@monorepo/ui-components";
-import { buildQueryString, composeValidators, email, formatDate, minLength, required, toTitleCase, validateObject } from "@monorepo/utils";
+import { buildQueryString, composeValidators, email, formatDate, getDateRangeFrom, groupEventsByDate, minLength, required, toDateKey, toTitleCase, validateObject } from "@monorepo/utils";
 const taskStatusOptions = ["all", "todo", "doing", "done"];
 const taskSortOptions = [
     "createdAt-desc",
@@ -121,4 +121,20 @@ export function TaskSearchAndSortPanel({ tasks, defaultSearch = "", defaultSort 
                             padding: "0.45rem 0.55rem",
                             width: "100%"
                         }, value: searchTerm })] }), _jsx(Stack, { direction: "row", gap: "0.5rem", wrap: "wrap", children: taskSortOptions.map((option) => (_jsx(Button, { label: toTitleCase(option.replace(/-/g, " ")), onClick: () => setActiveSort(option), variant: activeSort === option ? "primary" : "secondary" }, option))) }), _jsxs("div", { style: { color: "#6b7280", fontSize: "0.85rem", marginTop: "0.85rem" }, children: ["Query preview: ", queryPreview || "(empty)"] }), _jsx("ul", { style: { margin: "0.85rem 0 0 0", paddingInlineStart: "1.25rem" }, children: visibleTasks.map((task) => (_jsxs("li", { style: { marginBottom: "0.5rem" }, children: [_jsx("strong", { children: toTitleCase(task.title) }), _jsxs("div", { style: { color: "#6b7280", fontSize: "0.85rem" }, children: ["Status: ", toTitleCase(task.status), " | Created: ", formatDate(task.createdAt)] })] }, task.id))) })] }));
+}
+export function DeadlineCalendarStrip({ deadlines, anchorDate = new Date(), visibleDays = 7, onDateSelect }) {
+    const dateRange = useMemo(() => getDateRangeFrom(anchorDate, visibleDays), [anchorDate, visibleDays]);
+    const [selectedDate, setSelectedDate] = useState(() => toDateKey(anchorDate));
+    useEffect(() => {
+        if (!dateRange.includes(selectedDate) && dateRange.length > 0) {
+            setSelectedDate(dateRange[0]);
+        }
+    }, [dateRange, selectedDate]);
+    const groupedDeadlines = useMemo(() => groupEventsByDate(deadlines, (item) => item.dueDate), [deadlines]);
+    const visibleDeadlines = groupedDeadlines[selectedDate] ?? [];
+    const pendingCount = deadlines.filter((item) => item.status !== "completed").length;
+    return (_jsxs(Card, { title: "Feature X: Deadline Calendar Strip", actions: _jsxs(Stack, { direction: "row", gap: "0.5rem", align: "center", children: [_jsx(Badge, { label: `${pendingCount} pending` }), _jsx(Badge, { label: `${visibleDeadlines.length} on selected day` })] }), children: [_jsx(SectionHeader, { title: "Deadline Window", subtitle: "Review due items by day and focus on urgent work." }), _jsx(Stack, { direction: "row", gap: "0.5rem", wrap: "wrap", children: dateRange.map((dateKey) => (_jsx(Button, { label: `${formatDate(dateKey)} (${(groupedDeadlines[dateKey] ?? []).length})`, onClick: () => {
+                        setSelectedDate(dateKey);
+                        onDateSelect?.(dateKey);
+                    }, variant: selectedDate === dateKey ? "primary" : "secondary" }, dateKey))) }), _jsx("ul", { style: { margin: "0.9rem 0 0 0", paddingInlineStart: "1.25rem" }, children: visibleDeadlines.map((item) => (_jsxs("li", { style: { marginBottom: "0.6rem" }, children: [_jsx("strong", { children: toTitleCase(item.title) }), _jsxs("div", { style: { color: "#6b7280", fontSize: "0.85rem" }, children: [toTitleCase(item.status), item.category ? ` | ${toTitleCase(item.category)}` : ""] })] }, item.id))) })] }));
 }
